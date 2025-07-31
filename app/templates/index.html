@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DocuForm - Document Upload</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 32px 28px 28px 28px;
+        }
+        h1 {
+            color: #2d5be3;
+            margin-bottom: 8px;
+        }
+        .upload-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            align-items: center;
+        }
+        .file-input {
+            display: none;
+        }
+        .custom-file-upload {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f4f7fb;
+            border: 2px dashed #2d5be3;
+            border-radius: 8px;
+            padding: 24px 0;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            color: #2d5be3;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+        .custom-file-upload.dragover {
+            background: #e3eefd;
+            border-color: #1746a2;
+        }
+        .file-name {
+            margin-left: 10px;
+            color: #555;
+            font-size: 0.98em;
+        }
+        .upload-form button {
+            background: #2d5be3;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .upload-form button:hover {
+            background: #1746a2;
+        }
+        .docs-list {
+            margin-top: 16px;
+        }
+        .doc-card {
+            background: #f4f7fb;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+            margin-bottom: 18px;
+            padding: 18px 20px;
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .doc-card:hover {
+            box-shadow: 0 4px 16px rgba(44,62,80,0.10);
+            transform: translateY(-2px) scale(1.01);
+        }
+        .doc-card strong {
+            color: #2d5be3;
+        }
+        .doc-meta {
+            font-size: 0.97em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.98em;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .upload-form { flex-direction: column; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 DocuForm</h1>
+        <p style="color:#555; margin-bottom:24px;">Upload a PDF, image, or DOCX file and view the extracted text below.</p>
+        <form class="upload-form" id="uploadForm" action="/upload" enctype="multipart/form-data" method="post">
+            <div class="custom-file-upload" id="drop-area">
+                <span id="upload-label">Click or drag a file here to upload</span>
+                <span class="file-name" id="file-name"></span>
+            </div>
+            <input id="file-upload" class="file-input" type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+        <h2 style="margin-top:0; color:#1746a2;">Uploaded Documents</h2>
+        <div class="docs-list">
+        {% if documents %}
+            {% for doc in documents %}
+                <div class="doc-card">
+                    <div class="doc-meta">
+                        <strong>{{ doc.filename }}</strong> ({{ doc.file_type }})<br>
+                        Uploaded: {{ doc.upload_time }}
+                    </div>
+                    <pre>{{ doc.extracted_text }}</pre>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#888;">No documents uploaded yet.</p>
+        {% endif %}
+        </div>
+    </div>
+    <script>
+        // Show file name when selected
+        const fileInput = document.getElementById('file-upload');
+        const fileName = document.getElementById('file-name');
+        fileInput.addEventListener('change', function() {
+            fileName.textContent = this.files[0] ? this.files[0].name : '';
+        });
+
+        // Drag and drop support
+        const dropArea = document.getElementById('drop-area');
+        dropArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+        dropArea.addEventListener('dragleave', function(e) {
+            dropArea.classList.remove('dragover');
+        });
+        dropArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = e.dataTransfer.files[0].name;
+            }
+        });
+        // Clicking the drop area triggers file input
+        dropArea.addEventListener('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+    </script>
+</body>
+</html>
